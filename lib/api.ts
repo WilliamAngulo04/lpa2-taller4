@@ -34,12 +34,24 @@ export const demoFavoritos: Favorito[] = [
 let base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 export function setApiBase(value: string) { base = value.replace(/\/$/, '') }
 export function getApiBase() { return base }
+
+// Token OAuth2 (Bearer) guardado en el navegador
+const TOKEN_KEY = 'musica-lpa-token'
+export const LOGOUT_EVENT = 'musica-lpa-logout'
+export function getToken() { try { return localStorage.getItem(TOKEN_KEY) } catch { return null } }
+export function setToken(token: string | null) { try { if (token) localStorage.setItem(TOKEN_KEY, token); else localStorage.removeItem(TOKEN_KEY) } catch {} }
+
 export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response
+  const token = getToken()
   try {
-    response = await fetch(`${base}${path}`, { ...init, credentials: 'omit', headers: { ...(init?.body ? { 'Content-Type': 'application/json' } : {}), ...init?.headers } })
+    response = await fetch(`${base}${path}`, { ...init, credentials: 'omit', headers: { ...(typeof init?.body === 'string' ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}), ...init?.headers } })
   } catch {
     throw new Error('No se pudo conectar con la API')
+  }
+  if (response.status === 401 && token && path !== '/api/auth/token') {
+    setToken(null)
+    window.dispatchEvent(new Event(LOGOUT_EVENT))
   }
   if (!response.ok) {
     const payload = await response.json().catch(() => ({}))
@@ -50,4 +62,14 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
   if (response.status === 204) return undefined as T
   return response.json() as Promise<T>
 }
-export const pageQuery = (page: number, size: number) => `pagina=${page}&tamaño=${size}`
+// Flujo de contraseña de OAuth2: el correo va en el campo username
+export async function login(correo: string, password: string) {
+  const { access_token } = await api<{ access_token: string; token_type: string }>('/api/auth/token', { method: 'POST', body: new URLSearchParams({ username: correo, password }) })
+  setToken(access_token)
+  return api<Usuario>('/api/auth/me')
+}
+export async function register(nombre: string, correo: string, password: string) {
+  await api<Usuario>('/api/auth/registro', { method: 'POST', body: JSON.stringify({ nombre, correo, password }) })
+  return login(correo, password)
+}
+export const pageQuery =(page: number, size: number) => `pagina=${page}&tamaño=${size}`

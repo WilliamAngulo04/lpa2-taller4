@@ -10,7 +10,8 @@
       "500": {"detail": "Error interno del servidor | Error interno de base de datos"}
     },
     "fechas": "ISO 8601 en UTC, p. ej. 2026-11-16T21:40:00Z",
-    "cors": "La API permite cualquier origen (CORS *)"
+    "cors": "La API permite cualquier origen (CORS *)",
+    "autenticacion": "OAuth2 (flujo de contraseña) + JWT. Los GET son públicos; POST, PUT y DELETE de usuarios, canciones y favoritos exigen 'Authorization: Bearer <token>' y responden 401 sin él"
   },
   "modelos": {
     "Usuario": {"id": 1, "nombre": "string (2-100)", "correo": "string único, formato email", "fecha_registro": "datetime"},
@@ -29,6 +30,10 @@
   "endpoints": [
     {"endpoint": "/", "método": "GET", "body_response": {"nombre": "API de Música", "version": "1.0.0", "entorno": "development"}},
     {"endpoint": "/health", "método": "GET", "body_response": {"status": "healthy", "database": "conectada", "uptime_segundos": 12.3, "version": "1.0.0"}},
+
+    {"endpoint": "/api/auth/registro", "método": "POST", "body_request": {"nombre": "Ana Pérez", "correo": "ana@example.com", "password": "8 a 72 caracteres"}, "body_response": "Usuario", "status": 201, "errores": [409, 422]},
+    {"endpoint": "/api/auth/token", "método": "POST", "content_type": "application/x-www-form-urlencoded", "body_request": "username=<correo>&password=<contraseña>", "body_response": {"access_token": "JWT", "token_type": "bearer"}, "errores": [401]},
+    {"endpoint": "/api/auth/me", "método": "GET", "auth": true, "body_response": "Usuario", "errores": [401]},
 
     {"endpoint": "/api/usuarios", "método": "GET", "query": "pagina, tamaño", "body_response": "Pagina<Usuario>"},
     {"endpoint": "/api/usuarios", "método": "POST", "body_request": {"nombre": "Ana Pérez", "correo": "ana@example.com"}, "body_response": "Usuario", "status": 201, "errores": [409, 422]},
