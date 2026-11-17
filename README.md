@@ -79,7 +79,7 @@ Antes de usar el *prompt*, recopila esta información de tu API de Música, para
 | Nombre      | William Q. Angulo A.                                   |
 | Usuario Git | [WilliamAngulo04](https://github.com/WilliamAngulo04)  |
 | API (taller 3) | [lpa2-taller3](https://github.com/WilliamAngulo04/lpa2-taller3) |
-| Proyecto en v0 | _(pegar aquí el enlace público de v0)_              |
+| Proyecto en v0 | [lpa2-taller4.vercel.app](https://lpa2-taller4.vercel.app) |
 
 ### 1. Información de la API
 
