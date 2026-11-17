@@ -1,0 +1,54 @@
+{
+  "base_url": "http://localhost:8000",
+  "notas": {
+    "paginacion": "Los GET de colecciones aceptan ?pagina=1&tamaño=10 (tamaño máx. 100) y responden con un objeto Pagina",
+    "pagina": {"total": 0, "pagina": 1, "tamaño": 10, "paginas": 0, "items": []},
+    "errores": {
+      "404": {"detail": "Usuario no encontrado | Canción no encontrada | Favorito no encontrado"},
+      "409": {"detail": "El correo ya está registrado | La canción ya está en favoritos"},
+      "422": {"detail": [{"loc": ["body", "campo"], "msg": "mensaje de validación", "type": "value_error"}]},
+      "500": {"detail": "Error interno del servidor | Error interno de base de datos"}
+    },
+    "fechas": "ISO 8601 en UTC, p. ej. 2026-11-16T21:40:00Z",
+    "cors": "La API permite cualquier origen (CORS *)"
+  },
+  "modelos": {
+    "Usuario": {"id": 1, "nombre": "string (2-100)", "correo": "string único, formato email", "fecha_registro": "datetime"},
+    "Cancion": {
+      "id": 1,
+      "titulo": "string (1-200)",
+      "artista": "string (1-150)",
+      "album": "string | null (máx. 200)",
+      "duracion": "int > 0 (segundos)",
+      "año": "int entre 1900 y el año actual",
+      "genero": "string (1-50)",
+      "fecha_creacion": "datetime"
+    },
+    "Favorito": {"id": 1, "id_usuario": 1, "id_cancion": 1, "fecha_marcado": "datetime"}
+  },
+  "endpoints": [
+    {"endpoint": "/", "método": "GET", "body_response": {"nombre": "API de Música", "version": "1.0.0", "entorno": "development"}},
+    {"endpoint": "/health", "método": "GET", "body_response": {"status": "healthy", "database": "conectada", "uptime_segundos": 12.3, "version": "1.0.0"}},
+
+    {"endpoint": "/api/usuarios", "método": "GET", "query": "pagina, tamaño", "body_response": "Pagina<Usuario>"},
+    {"endpoint": "/api/usuarios", "método": "POST", "body_request": {"nombre": "Ana Pérez", "correo": "ana@example.com"}, "body_response": "Usuario", "status": 201, "errores": [409, 422]},
+    {"endpoint": "/api/usuarios/{id}", "método": "GET", "body_response": "Usuario", "errores": [404]},
+    {"endpoint": "/api/usuarios/{id}", "método": "PUT", "body_request": {"nombre": "opcional", "correo": "opcional"}, "body_response": "Usuario", "errores": [404, 409, 422]},
+    {"endpoint": "/api/usuarios/{id}", "método": "DELETE", "status": 204, "nota": "también borra sus favoritos", "errores": [404]},
+
+    {"endpoint": "/api/canciones", "método": "GET", "query": "pagina, tamaño", "body_response": "Pagina<Cancion>"},
+    {"endpoint": "/api/canciones/buscar", "método": "GET", "query": "titulo, artista, genero (coincidencia parcial, todos opcionales), pagina, tamaño", "body_response": "Pagina<Cancion>"},
+    {"endpoint": "/api/canciones", "método": "POST", "body_request": {"titulo": "Bohemian Rhapsody", "artista": "Queen", "album": "A Night at the Opera", "duracion": 354, "año": 1975, "genero": "Rock"}, "body_response": "Cancion", "status": 201, "errores": [422]},
+    {"endpoint": "/api/canciones/{id}", "método": "GET", "body_response": "Cancion", "errores": [404]},
+    {"endpoint": "/api/canciones/{id}", "método": "PUT", "body_request": "cualquier subconjunto de los campos de Cancion", "body_response": "Cancion", "errores": [404, 422]},
+    {"endpoint": "/api/canciones/{id}", "método": "DELETE", "status": 204, "nota": "también borra los favoritos que la referencian", "errores": [404]},
+
+    {"endpoint": "/api/favoritos", "método": "GET", "query": "pagina, tamaño", "body_response": "Pagina<Favorito>"},
+    {"endpoint": "/api/favoritos", "método": "POST", "body_request": {"id_usuario": 1, "id_cancion": 1}, "body_response": "Favorito", "status": 201, "errores": [404, 409, 422]},
+    {"endpoint": "/api/favoritos/{id}", "método": "GET", "body_response": "Favorito", "errores": [404]},
+    {"endpoint": "/api/favoritos/{id}", "método": "DELETE", "status": 204, "errores": [404]},
+    {"endpoint": "/api/usuarios/{id}/favoritos", "método": "GET", "query": "pagina, tamaño", "body_response": "Pagina<Favorito>", "errores": [404]},
+    {"endpoint": "/api/usuarios/{id_usuario}/favoritos/{id_cancion}", "método": "POST", "body_response": "Favorito", "status": 201, "errores": [404, 409]},
+    {"endpoint": "/api/usuarios/{id_usuario}/favoritos/{id_cancion}", "método": "DELETE", "status": 204, "errores": [404]}
+  ]
+}

@@ -69,3 +69,61 @@ Antes de usar el *prompt*, recopila esta información de tu API de Música, para
 12. Revisa y ajusta la configuración del API
 13. Para ejecutar en modo producción: `pnpm build` y luego: `pnpm start`
 
+
+---
+
+## Desarrollo del Taller
+
+| Campo       | Valor                                                  |
+|-------------|--------------------------------------------------------|
+| Nombre      | William Q. Angulo A.                                   |
+| Usuario Git | [WilliamAngulo04](https://github.com/WilliamAngulo04)  |
+| API (taller 3) | [lpa2-taller3](https://github.com/WilliamAngulo04/lpa2-taller3) |
+| Proyecto en v0 | _(pegar aquí el enlace público de v0)_              |
+
+### 1. Información de la API
+
+La descripción de los 20 *endpoints* del taller 3 (cuerpos, respuestas paginadas y errores 404/409/422/500) está en [`docs/api-musica.json`](docs/api-musica.json).
+
+### 2. *Prompt* usado en v0
+
+El *prompt* completo, ya adaptado y con el JSON incluido, está en [`docs/prompt-v0.md`](docs/prompt-v0.md). Especifica:
+
+- Vistas: Inicio (dashboard), Canciones, Usuarios y Favoritos.
+- Estados de carga (*skeletons*), vacío, error con reintento y *toasts*.
+- Búsqueda con *debounce*, paginación, diálogos de creación/edición y confirmación al eliminar.
+- Validación con zod igual a la de la API, caché con SWR y URL de la API configurable.
+- Modo demostración para que la versión publicada funcione sin el backend.
+
+### 3. Ejecutar en Windows
+
+```powershell
+# API (en otra terminal)
+cd ..\lpa2-taller3
+venv\Scripts\activate
+uvicorn main:app --reload        # http://localhost:8000
+
+# Frontend
+winget install OpenJS.NodeJS.LTS # Node 20+, solo la primera vez
+npm install -g pnpm
+pnpm install
+copy .env.example .env.local     # NEXT_PUBLIC_API_URL=http://localhost:8000
+pnpm dev                         # http://localhost:3000
+```
+
+Para producción: `pnpm build` y `pnpm start`.
+
+### 4. Ajustes al código generado por v0
+
+El ZIP de v0 funcionaba, pero se corrigió en [`components/music-dashboard.tsx`](components/music-dashboard.tsx):
+
+- Las tablas de Canciones y Usuarios usaban las primeras 100 filas y paginaban en el navegador; ahora usan la paginación del API (`pagina`, `tamaño`, `paginas`) y la búsqueda de `/api/canciones/buscar`.
+- Los totales del inicio usan el campo `total` de la API en lugar de contar las filas cargadas.
+- Mientras carga ya no se muestran los datos de ejemplo; hay *skeletons* y un estado de error con "Reintentar".
+- El campo de URL de la API recargaba todo con cada tecla; ahora solo aplica al guardar.
+- Si el usuario activo guardado no existe en la API, se usa el primero de la lista.
+- La fecha del inicio estaba fija; ahora es la fecha actual.
+
+### 5. Publicación
+
+La aplicación se publica desde v0 con el botón **Publish** (despliegue en Vercel). Como la API corre en `localhost`, la versión publicada usa el modo demostración; para conectarla a la API real se cambia la URL en **Configuración de la API** (por ejemplo, un túnel `ngrok http 8000`).
